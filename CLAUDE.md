@@ -63,33 +63,59 @@ harness/
 ## Development Commands
 
 ### Setup
+
+**Using uv (recommended):**
 ```bash
-# Create virtual environment (recommended)
-python3 -m venv venv
-source venv/bin/activate  # On macOS/Linux
-# venv\Scripts\activate   # On Windows
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install dependencies
-pip install -r requirements.txt
+make install
+# or: uv pip install -r requirements.txt
 
-# Or install in development mode
+# Install with dev dependencies
+make dev-install
+# or: uv pip install -e ".[dev]"
+```
+
+**Traditional method:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 pip install -e .
+```
+
+### Makefile Commands
+
+```bash
+make help          # Show all available commands
+make install       # Install dependencies with uv
+make dev-install   # Install with dev dependencies
+make clean         # Remove build artifacts
+make lint          # Run ruff linting
+make format        # Format code with ruff
+make run           # Run with default tasks.json
+make run-gemini    # Run with tasks-gemini.json
+make run-shell     # Run with tasks-shell.json
+make check-gemini  # Verify gemini-cli installation
 ```
 
 ### Running the Harness
 
 ```bash
-# Run with default files (tasks.json, progress.txt)
+# Using Make
+make run
+make run-gemini  # Requires gemini-cli
+make run-shell
+
+# Direct execution
 python3 -m harness.cli
-
-# Or if installed
-harness
-
-# Run with custom task file
 python3 -m harness.cli --tasks my-tasks.json
-
-# Run with custom progress log
 python3 -m harness.cli --progress logs/progress.txt
+
+# With uv
+uv run python -m harness.cli
 ```
 
 ### TUI Controls
@@ -129,8 +155,22 @@ The `tasks.json` file follows this structure:
 - `title`: Display name (shown in TUI)
 - `priority`: Lower numbers execute first
 - `passes`: Boolean tracking completion (like Ralph's prd.json)
-- `duration_seconds`: Example field for demo tasks
-- `should_fail`: Example field for testing error handling
+- `runner`: Task runner type ("gemini", "shell", or omit for default)
+
+**Runner-specific fields:**
+
+For default runner:
+- `duration_seconds`: Simulated task duration
+- `should_fail`: Force task failure for testing
+
+For gemini runner:
+- `prompt`: The prompt to send to Gemini CLI
+- `auto_approve`: Auto-approve Gemini actions (default: false)
+- `json_output`: Request JSON output (default: false)
+
+For shell runner:
+- `command`: Shell command to execute
+- `timeout`: Command timeout in seconds (default: 300)
 
 ## Ralph Pattern Implementation
 
@@ -145,24 +185,82 @@ Following Ralph's autonomous loop approach:
 
 Unlike Ralph's bash script spawning fresh AI instances, this harness runs tasks in-process but maintains the same conceptual model of iterative, tracked execution.
 
-## Extending the Harness
+## Task Runners
+
+Harness supports pluggable task runners:
+
+### Built-in Runners
+
+1. **Default Runner**: Demo/testing runner with simulated delays
+2. **Gemini Runner** (`src/harness/runners/gemini_runner.py`): Executes tasks via gemini-cli
+3. **Shell Runner** (`src/harness/runners/shell_runner.py`): Executes shell commands
+
+### Using Runners
+
+Specify the runner in task JSON:
+```json
+{"runner": "gemini", "prompt": "...", ...}
+{"runner": "shell", "command": "...", ...}
+{} // No runner field = default runner
+```
 
 ### Custom Task Runners
 
-The default task runner is a demo implementation. To use custom task logic:
+Add your own runner:
 
 ```python
 from harness import TaskExecutor
 
-def my_task_runner(task_data: dict):
-    # Your custom task execution logic
-    # Access task_data fields like task_data["id"], etc.
+def my_runner(task_data: dict):
+    # Your custom logic
     result = do_work(task_data)
     return result
 
-executor = TaskExecutor(task_runner=my_task_runner)
+executor = TaskExecutor()
+executor.runners['myrunner'] = my_runner
 ```
 
-### Adding New Task Fields
+Then use it:
+```json
+{"runner": "myrunner", "id": "task-1", ...}
+```
 
-Tasks are loaded from JSON and passed to the task runner. Add any fields you need to `tasks.json` and access them via `task_data` in your runner function.
+## Gemini CLI Integration
+
+Install gemini-cli for AI-powered tasks:
+```bash
+npm install -g @google/gemini-cli
+
+# Verify installation
+make check-gemini
+```
+
+Example Gemini task:
+```json
+{
+  "id": "analyze-code",
+  "title": "Code Analysis",
+  "runner": "gemini",
+  "prompt": "Review src/harness/task.py and suggest improvements",
+  "priority": 1,
+  "passes": false
+}
+```
+
+## Package Management with uv
+
+This project uses [uv](https://github.com/astral-sh/uv) for fast, reliable Python package management.
+
+**Why uv:**
+- 10-100x faster than pip
+- Deterministic dependency resolution
+- Built-in virtual environment management
+- Drop-in replacement for pip
+
+**Common uv commands:**
+```bash
+uv pip install package-name
+uv pip install -r requirements.txt
+uv pip install -e .
+uv run python script.py
+```

@@ -1,0 +1,40 @@
+{
+  "tasks": [
+    {
+      "id": "shell-task-1",
+      "title": "Run linter",
+      "description": "Run Python code linter",
+      "priority": 1,
+      "passes": false,
+      "runner": "shell",
+      "command": "python3 -m flake8 src/ --max-line-length=100 || true",
+      "timeout": 60
+    },
+    {
+      "id": "shell-task-2",
+      "title": "Run type checker",
+      "description": "Run mypy type checking",
+      "priority": 2,
+      "passes": false,
+      "runner": "shell",
+      "command": "python3 -m mypy src/harness --ignore-missing-imports || true",
+      "timeout": 60
+    },
+    {
+      "id": "shell-task-3",
+      "title": "Count lines of code",
+      "description": "Count lines of Python code",
+      "priority": 3,
+      "passes": false,
+      "runner": "shell",
+      "command": "find src -name '*.py' -exec wc -l {} + | tail -1",
+      "timeout": 30
+    }
+  ],
+  "metadata": {
+    "created": "2026-06-04",
+    "max_iterations": 10,
+    "current_iteration": 0,
+    "runner_type": "shell"
+  }
+}

@@ -9,6 +9,13 @@ from typing import Any, Callable, Optional
 
 from .task import Task, TaskStatus
 
+try:
+    from .runners.gemini_runner import GeminiRunner
+    from .runners.shell_runner import ShellRunner
+    RUNNERS_AVAILABLE = True
+except ImportError:
+    RUNNERS_AVAILABLE = False
+
 
 class TaskExecutor:
     """Executes tasks in an autonomous loop similar to Ralph.
@@ -41,6 +48,12 @@ class TaskExecutor:
         self.current_iteration = 0
         self.max_iterations = 10
 
+        # Initialize runners if available
+        self.runners = {}
+        if RUNNERS_AVAILABLE:
+            self.runners['gemini'] = GeminiRunner()
+            self.runners['shell'] = ShellRunner()
+
     def load_tasks(self) -> None:
         """Load tasks from tasks.json."""
         if not self.tasks_file.exists():
@@ -55,10 +68,13 @@ class TaskExecutor:
         # Convert JSON tasks to Task objects
         self.tasks = []
         for task_data in data.get("tasks", []):
+            # Get the appropriate runner for this task
+            runner = self._get_runner_for_task(task_data)
+
             # Create a simple wrapper function that the task runner will call
             task = Task(
                 name=task_data["title"],
-                func=self.task_runner,
+                func=runner,
                 kwargs={
                     "task_data": task_data,
                 },
@@ -121,6 +137,22 @@ class TaskExecutor:
         # Sort by priority (lower number = higher priority)
         incomplete_tasks.sort(key=lambda t: t.priority)
         return incomplete_tasks[0]
+
+    def _get_runner_for_task(self, task_data: dict) -> Callable:
+        """Get the appropriate runner for a task.
+
+        Args:
+            task_data: The task data dictionary
+
+        Returns:
+            Runner callable for this task
+        """
+        runner_type = task_data.get("runner", "default")
+
+        if runner_type in self.runners:
+            return self.runners[runner_type]
+
+        return self._default_task_runner
 
     def _default_task_runner(self, task_data: dict) -> Any:
         """Default task runner for demonstration purposes.

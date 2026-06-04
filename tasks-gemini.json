@@ -1,0 +1,31 @@
+{
+  "tasks": [
+    {
+      "id": "gemini-task-1",
+      "title": "Analyze codebase structure",
+      "description": "Use Gemini to analyze the harness codebase",
+      "priority": 1,
+      "passes": false,
+      "runner": "gemini",
+      "prompt": "Analyze the Python codebase in src/harness and provide a brief summary of the architecture",
+      "auto_approve": false,
+      "json_output": false
+    },
+    {
+      "id": "gemini-task-2",
+      "title": "Generate documentation suggestions",
+      "description": "Ask Gemini for documentation improvements",
+      "priority": 2,
+      "passes": false,
+      "runner": "gemini",
+      "prompt": "Review the README.md file and suggest 3 improvements to make it more user-friendly",
+      "auto_approve": false
+    }
+  ],
+  "metadata": {
+    "created": "2026-06-04",
+    "max_iterations": 10,
+    "current_iteration": 0,
+    "runner_type": "gemini"
+  }
+}
