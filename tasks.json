@@ -1,0 +1,36 @@
+{
+  "tasks": [
+    {
+      "id": "example-1",
+      "title": "Example Task 1",
+      "description": "This is an example task that will complete successfully",
+      "priority": 1,
+      "passes": false,
+      "duration_seconds": 3,
+      "should_fail": false
+    },
+    {
+      "id": "example-2",
+      "title": "Example Task 2",
+      "description": "This task demonstrates a longer-running operation",
+      "priority": 2,
+      "passes": false,
+      "duration_seconds": 5,
+      "should_fail": false
+    },
+    {
+      "id": "example-3",
+      "title": "Example Task 3",
+      "description": "This task will fail to demonstrate error handling",
+      "priority": 3,
+      "passes": false,
+      "duration_seconds": 2,
+      "should_fail": true
+    }
+  ],
+  "metadata": {
+    "created": "2026-06-04",
+    "max_iterations": 10,
+    "current_iteration": 0
+  }
+}
