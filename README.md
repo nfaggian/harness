@@ -17,7 +17,9 @@ A task execution framework with TUI for easy tracking, inspired by [Ralph](https
 
 - Python 3.10 or later
 - [uv](https://github.com/astral-sh/uv) package manager (recommended)
-- Optional: [gemini-cli](https://github.com/google-gemini/gemini-cli) for AI-powered tasks
+- Optional AI tools:
+  - [gemini-cli](https://github.com/google-gemini/gemini-cli) - Google's Gemini AI
+  - [OpenCode](https://opencode.ai/) - Open-source AI coding agent (supports 75+ LLM providers)
 
 ### Installation
 
@@ -42,9 +44,13 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-**Install gemini-cli (optional, for AI tasks):**
+**Install AI tools (optional):**
 ```bash
+# Gemini CLI (Google's Gemini AI)
 npm install -g @google/gemini-cli
+
+# OpenCode (multi-provider AI coding agent)
+curl -fsSL https://opencode.ai/install | sh
 ```
 
 ### Running
@@ -54,8 +60,9 @@ npm install -g @google/gemini-cli
 # Run with default tasks
 make run
 
-# Run with gemini-cli tasks
-make run-gemini
+# Run with AI-powered tasks
+make run-gemini    # Google Gemini
+make run-opencode  # OpenCode (multi-provider)
 
 # Run with shell command tasks
 make run-shell
@@ -113,7 +120,29 @@ Harness supports multiple task runners:
 }
 ```
 
-**3. Shell Command Runner** (`tasks-shell.json`):
+**3. OpenCode Runner** (`tasks-opencode.json`):
+```json
+{
+  "tasks": [
+    {
+      "id": "opencode-task",
+      "title": "Code Review with OpenCode",
+      "description": "Use OpenCode to review code",
+      "priority": 1,
+      "passes": false,
+      "runner": "opencode",
+      "prompt": "Review src/harness/task.py and suggest improvements",
+      "mode": "plan",
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-5",
+      "auto_approve": false
+    }
+  ],
+  "metadata": {"max_iterations": 10}
+}
+```
+
+**4. Shell Command Runner** (`tasks-shell.json`):
 ```json
 {
   "tasks": [
@@ -163,7 +192,7 @@ Harness follows the Ralph autonomous loop pattern:
 
 ## Task Runners
 
-Harness comes with three built-in task runners:
+Harness comes with four built-in task runners:
 
 ### 1. Default Runner
 Simulates task execution with configurable duration and failure modes. Useful for testing.
@@ -177,7 +206,21 @@ Executes tasks using Google's Gemini AI via gemini-cli. Perfect for AI-powered c
 - `auto_approve`: Auto-approve Gemini actions (default: false)
 - `json_output`: Request JSON formatted output (default: false)
 
-### 3. Shell Runner
+### 3. OpenCode Runner
+Executes tasks using the open-source OpenCode AI coding agent. Supports 75+ LLM providers including OpenAI, Anthropic Claude, Google Gemini, and local models via Ollama.
+
+**Task Fields:**
+- `runner`: "opencode"
+- `prompt`: The prompt to send to OpenCode
+- `mode`: Agent mode - "build" (full access) or "plan" (read-only analysis)
+- `provider`: LLM provider (e.g., "anthropic", "openai", "google")
+- `model`: Model name (e.g., "claude-sonnet-4-5", "gpt-4")
+- `auto_approve`: Auto-approve OpenCode actions (default: false)
+- `verbose`: Enable verbose output (default: false)
+- `json_output`: Request JSON formatted output (default: false)
+- `timeout`: Execution timeout in seconds (default: 600)
+
+### 4. Shell Runner
 Executes shell commands directly. Great for running builds, tests, linters, etc.
 
 **Task Fields:**
@@ -198,8 +241,10 @@ make lint          # Run code linting
 make format        # Format code with ruff
 make run           # Run with default tasks
 make run-gemini    # Run with gemini tasks
+make run-opencode  # Run with OpenCode tasks
 make run-shell     # Run with shell tasks
 make check-gemini  # Verify gemini-cli is installed
+make check-opencode # Verify OpenCode is installed
 ```
 
 ## Customization

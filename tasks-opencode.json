@@ -1,0 +1,46 @@
+{
+  "tasks": [
+    {
+      "id": "opencode-analyze",
+      "title": "Analyze codebase with OpenCode",
+      "description": "Use OpenCode to analyze the harness architecture",
+      "priority": 1,
+      "passes": false,
+      "runner": "opencode",
+      "prompt": "Analyze the Python code in src/harness/ and provide a summary of the architecture and key design patterns used",
+      "mode": "plan",
+      "auto_approve": false,
+      "timeout": 300
+    },
+    {
+      "id": "opencode-improve",
+      "title": "Suggest improvements",
+      "description": "Ask OpenCode for code improvements",
+      "priority": 2,
+      "passes": false,
+      "runner": "opencode",
+      "prompt": "Review the task.py file and suggest 3 specific improvements to make the code more maintainable",
+      "mode": "plan",
+      "auto_approve": false
+    },
+    {
+      "id": "opencode-build",
+      "title": "Add type hints",
+      "description": "Use OpenCode build mode to add type hints",
+      "priority": 3,
+      "passes": false,
+      "runner": "opencode",
+      "prompt": "Add comprehensive type hints to all functions in src/harness/task.py that are missing them",
+      "mode": "build",
+      "auto_approve": false,
+      "timeout": 600
+    }
+  ],
+  "metadata": {
+    "created": "2026-06-04",
+    "max_iterations": 10,
+    "current_iteration": 0,
+    "runner_type": "opencode",
+    "description": "Example tasks using OpenCode AI coding agent with plan and build modes"
+  }
+}

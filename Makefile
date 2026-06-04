@@ -1,4 +1,4 @@
-.PHONY: help install dev-install clean test lint format run run-gemini run-shell
+.PHONY: help install dev-install clean test lint format run run-gemini run-opencode run-shell check-gemini check-opencode
 
 # Default target
 help:
@@ -10,11 +10,13 @@ help:
 	@echo "  clean          Remove build artifacts and cache files"
 	@echo "  test           Run tests (when available)"
 	@echo "  lint           Run code linting"
-	@echo "  format         Format code with black"
+	@echo "  format         Format code with ruff"
 	@echo "  run            Run harness with default tasks.json"
 	@echo "  run-gemini     Run harness with gemini-cli tasks"
+	@echo "  run-opencode   Run harness with OpenCode tasks"
 	@echo "  run-shell      Run harness with shell command tasks"
 	@echo "  check-gemini   Check if gemini-cli is installed"
+	@echo "  check-opencode Check if OpenCode is installed"
 
 # Install dependencies using uv
 install:
@@ -65,6 +67,15 @@ run-gemini:
 	fi
 	uv run python -m harness.cli --tasks tasks-gemini.json
 
+# Run harness with OpenCode tasks
+run-opencode:
+	@echo "Running harness with OpenCode tasks..."
+	@if [ ! -f tasks-opencode.json ]; then \
+		echo "Error: tasks-opencode.json not found"; \
+		exit 1; \
+	fi
+	uv run python -m harness.cli --tasks tasks-opencode.json
+
 # Run harness with shell tasks
 run-shell:
 	@echo "Running harness with shell tasks..."
@@ -83,5 +94,17 @@ check-gemini:
 	else \
 		echo "✗ gemini-cli not found"; \
 		echo "Install it with: npm install -g @google/gemini-cli"; \
+		exit 1; \
+	fi
+
+# Check if OpenCode is installed
+check-opencode:
+	@echo "Checking for OpenCode..."
+	@if command -v opencode >/dev/null 2>&1; then \
+		echo "✓ OpenCode is installed"; \
+		opencode --version; \
+	else \
+		echo "✗ OpenCode not found"; \
+		echo "Install it with: curl -fsSL https://opencode.ai/install | sh"; \
 		exit 1; \
 	fi

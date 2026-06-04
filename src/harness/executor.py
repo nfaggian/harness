@@ -11,6 +11,7 @@ from .task import Task, TaskStatus
 
 try:
     from .runners.gemini_runner import GeminiRunner
+    from .runners.opencode_runner import OpenCodeRunner
     from .runners.shell_runner import ShellRunner
     RUNNERS_AVAILABLE = True
 except ImportError:
@@ -52,6 +53,7 @@ class TaskExecutor:
         self.runners = {}
         if RUNNERS_AVAILABLE:
             self.runners['gemini'] = GeminiRunner()
+            self.runners['opencode'] = OpenCodeRunner()
             self.runners['shell'] = ShellRunner()
 
     def load_tasks(self) -> None:
@@ -212,8 +214,11 @@ class TaskExecutor:
         task.start()
 
         try:
-            # Check if task function is async
-            if asyncio.iscoroutinefunction(task.func):
+            # Check if task function has an async run method (for runner objects)
+            if hasattr(task.func, 'run') and asyncio.iscoroutinefunction(task.func.run):
+                result = await task.func.run(**task.kwargs)
+            # Check if task function itself is async
+            elif asyncio.iscoroutinefunction(task.func):
                 result = await task.func(**task.kwargs)
             else:
                 # Run sync function in executor to avoid blocking

@@ -97,8 +97,10 @@ make lint          # Run ruff linting
 make format        # Format code with ruff
 make run           # Run with default tasks.json
 make run-gemini    # Run with tasks-gemini.json
+make run-opencode  # Run with tasks-opencode.json
 make run-shell     # Run with tasks-shell.json
 make check-gemini  # Verify gemini-cli installation
+make check-opencode # Verify OpenCode installation
 ```
 
 ### Running the Harness
@@ -168,6 +170,16 @@ For gemini runner:
 - `auto_approve`: Auto-approve Gemini actions (default: false)
 - `json_output`: Request JSON output (default: false)
 
+For opencode runner:
+- `prompt`: The prompt to send to OpenCode
+- `mode`: Agent mode - "build" (full access) or "plan" (read-only)
+- `provider`: LLM provider (anthropic, openai, google, etc.)
+- `model`: Model name (e.g., "claude-sonnet-4-5")
+- `auto_approve`: Auto-approve OpenCode actions (default: false)
+- `verbose`: Enable verbose output (default: false)
+- `json_output`: Request JSON output (default: false)
+- `timeout`: Execution timeout in seconds (default: 600)
+
 For shell runner:
 - `command`: Shell command to execute
 - `timeout`: Command timeout in seconds (default: 300)
@@ -193,13 +205,15 @@ Harness supports pluggable task runners:
 
 1. **Default Runner**: Demo/testing runner with simulated delays
 2. **Gemini Runner** (`src/harness/runners/gemini_runner.py`): Executes tasks via gemini-cli
-3. **Shell Runner** (`src/harness/runners/shell_runner.py`): Executes shell commands
+3. **OpenCode Runner** (`src/harness/runners/opencode_runner.py`): Executes tasks via OpenCode (supports 75+ LLM providers)
+4. **Shell Runner** (`src/harness/runners/shell_runner.py`): Executes shell commands
 
 ### Using Runners
 
 Specify the runner in task JSON:
 ```json
 {"runner": "gemini", "prompt": "...", ...}
+{"runner": "opencode", "prompt": "...", "mode": "plan", ...}
 {"runner": "shell", "command": "...", ...}
 {} // No runner field = default runner
 ```
@@ -225,13 +239,13 @@ Then use it:
 {"runner": "myrunner", "id": "task-1", ...}
 ```
 
-## Gemini CLI Integration
+## AI Tool Integrations
 
-Install gemini-cli for AI-powered tasks:
+### Gemini CLI
+
+Install gemini-cli for Google's Gemini AI:
 ```bash
 npm install -g @google/gemini-cli
-
-# Verify installation
 make check-gemini
 ```
 
@@ -246,6 +260,35 @@ Example Gemini task:
   "passes": false
 }
 ```
+
+### OpenCode
+
+Install OpenCode for multi-provider AI coding:
+```bash
+curl -fsSL https://opencode.ai/install | sh
+make check-opencode
+```
+
+Example OpenCode task:
+```json
+{
+  "id": "review-with-claude",
+  "title": "Code Review with Claude",
+  "runner": "opencode",
+  "prompt": "Review the task execution logic and suggest improvements",
+  "mode": "plan",
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-5",
+  "priority": 1,
+  "passes": false
+}
+```
+
+**OpenCode Features:**
+- Supports 75+ LLM providers (OpenAI, Anthropic, Google, AWS Bedrock, Azure, local Ollama)
+- Two agent modes: `build` (full access) and `plan` (read-only analysis)
+- LSP integration for code intelligence
+- Can read, write, edit files and run shell commands
 
 ## Package Management with uv
 
