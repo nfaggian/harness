@@ -72,9 +72,9 @@ class IterationStatsWidget(Static):
 class TaskListWidget(Static):
     """Widget showing all tasks and their status."""
 
-    def __init__(self, executor: TaskExecutor) -> None:
+    def __init__(self, executor: TaskExecutor, **kwargs) -> None:
         """Initialize with task executor."""
-        super().__init__()
+        super().__init__(**kwargs)
         self.executor = executor
 
     def render(self) -> Panel:
@@ -117,14 +117,14 @@ class TaskListWidget(Static):
 class ProgressLogWidget(VerticalScroll):
     """Widget showing the progress log."""
 
-    def __init__(self) -> None:
+    def __init__(self, **kwargs) -> None:
         """Initialize the progress log widget."""
-        super().__init__()
-        self.log = Log()
+        super().__init__(**kwargs)
+        self.log_widget = Log()
 
     def compose(self) -> ComposeResult:
         """Compose the widget."""
-        yield self.log
+        yield self.log_widget
 
     def add_line(self, message: str) -> None:
         """Add a line to the log.
@@ -132,7 +132,7 @@ class ProgressLogWidget(VerticalScroll):
         Args:
             message: The message to add
         """
-        self.log.write_line(message)
+        self.log_widget.write_line(message)
 
 
 class HarnessApp(App):
@@ -241,45 +241,44 @@ class HarnessApp(App):
             self.executor.load_tasks()
             self.update_stats()
             self.refresh_task_list()
-            self.log("Tasks loaded successfully")
+            self.log_message("Tasks loaded successfully")
         except Exception as e:
-            self.log(f"Error loading tasks: {e}", style="red")
+            self.log_message(f"Error loading tasks: {e}", style="red")
 
     @on(Button.Pressed, "#run-btn")
     def action_run(self) -> None:
         """Start the execution loop."""
         if not self.running:
             self.running = True
-            self.log("Starting execution loop...", style="green bold")
+            self.log_message("Starting execution loop...", style="green bold")
             self.run_loop()
 
     @on(Button.Pressed, "#pause-btn")
     def action_pause(self) -> None:
         """Pause the execution loop."""
         self.running = False
-        self.log("Paused", style="yellow")
+        self.log_message("Paused", style="yellow")
 
     @on(Button.Pressed, "#clear-btn")
     def action_clear_log(self) -> None:
         """Clear the progress log."""
         if self.progress_log_widget:
-            self.progress_log_widget.log.clear()
+            self.progress_log_widget.log_widget.clear()
 
     @on(Button.Pressed, "#quit-btn")
     def action_quit(self) -> None:
         """Quit the application."""
         self.exit()
 
-    def log(self, message: str, style: str = "white") -> None:
+    def log_message(self, message: str, style: str = "white") -> None:
         """Add a message to the progress log.
 
         Args:
             message: The message to log
-            style: Rich style for the message
+            style: Rich style for the message (currently unused)
         """
         if self.progress_log_widget:
-            styled_msg = Text(message, style=style)
-            self.progress_log_widget.add_line(styled_msg)
+            self.progress_log_widget.add_line(message)
 
     def update_stats(self) -> None:
         """Update the statistics widget."""
@@ -305,7 +304,7 @@ class HarnessApp(App):
         while self.running and self.executor.current_iteration < self.executor.max_iterations:
             task = self.executor.get_next_task()
             if not task:
-                self.log("All tasks completed! 🎉", style="green bold")
+                self.log_message("All tasks completed! 🎉", style="green bold")
                 self.running = False
                 break
 
@@ -314,7 +313,7 @@ class HarnessApp(App):
                 self.current_task_widget.current_task = task.name
                 self.current_task_widget.progress = 0
 
-            self.log(f"Starting: {task.name}", style="cyan")
+            self.log_message(f"Starting: {task.name}", style="cyan")
             self.refresh_task_list()
 
             # Execute task with progress simulation
@@ -329,7 +328,7 @@ class HarnessApp(App):
 
                 for i in range(steps):
                     if not self.running:
-                        self.log(f"Cancelled: {task.name}", style="yellow")
+                        self.log_message(f"Cancelled: {task.name}", style="yellow")
                         task.cancel()
                         break
 
@@ -343,12 +342,12 @@ class HarnessApp(App):
                     await self.executor.execute_task(task)
 
                     if task.status == TaskStatus.SUCCESS:
-                        self.log(f"✓ Completed: {task.name}", style="green")
+                        self.log_message(f"✓ Completed: {task.name}", style="green")
                     else:
-                        self.log(f"✗ Failed: {task.name} - {task.error}", style="red")
+                        self.log_message(f"✗ Failed: {task.name} - {task.error}", style="red")
 
             except Exception as e:
-                self.log(f"✗ Error: {task.name} - {str(e)}", style="red")
+                self.log_message(f"✗ Error: {task.name} - {str(e)}", style="red")
                 task.fail(str(e))
 
             self.executor.save_tasks()
@@ -359,7 +358,7 @@ class HarnessApp(App):
             await asyncio.sleep(0.5)
 
         if self.executor.current_iteration >= self.executor.max_iterations:
-            self.log(f"Reached max iterations ({self.executor.max_iterations})", style="yellow")
+            self.log_message(f"Reached max iterations ({self.executor.max_iterations})", style="yellow")
             self.running = False
 
         self.update_stats()

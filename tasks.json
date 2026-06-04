@@ -5,7 +5,7 @@
       "title": "Example Task 1",
       "description": "This is an example task that will complete successfully",
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "duration_seconds": 3,
       "should_fail": false
     },
@@ -14,7 +14,7 @@
       "title": "Example Task 2",
       "description": "This task demonstrates a longer-running operation",
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "duration_seconds": 5,
       "should_fail": false
     },

@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+import traceback
 from pathlib import Path
 
 from .tui import run_tui
@@ -89,6 +90,7 @@ Examples:
         sys.exit(0)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
+        traceback.print_exc()
         sys.exit(1)
 
 
